@@ -23,7 +23,7 @@ if ! command -v bun >/dev/null 2>&1; then
     export PATH="$HOME/.bun/bin:$PATH"
 fi
 
-# 2. Build rust-g
+# 1. Build rust-g
 if [ ! -d "rust-g" ]; then
     git clone https://github.com/tgstation/rust-g
 fi
@@ -35,7 +35,7 @@ cargo build --release --target="$RUST_TARGET" --features allow_non_32bit
 cp -f "target/$RUST_TARGET/release/librust_g.so" "$1/librust_g.so"
 cd ..
 
-# 3. Build dreamluau with ARM64 patches
+# 2. Build dreamluau
 if [ ! -d "dreamluau" ]; then
     git clone https://github.com/tgstation/dreamluau
 fi
@@ -54,17 +54,20 @@ if [ -d "$MEOW_DIR" ]; then
 fi
 
 echo "Patching DreamLuau source for ARM64 pointer types..."
-# Fixes the 8 'expected *const u8, found *const i8' and 'i8 to u8' errors
+# Fixes the 'expected *const u8, found *const i8' errors
+# We use a broad regex to ensure we catch 'as *const i8' even with weird spacing
 sed -i 's/as \*const i8/as \*const u8/g' src/state/util/entrypoint.rs
 sed -i 's/as \*const i8/as \*const u8/g' src/state/util/traceback.rs
-sed -i 's/as i8/as u8/g' src/state/util/traceback.rs
+
+# Fix the 'expected u8, found i8' char literal errors
+sed -i 's/as i8)/.try_into().unwrap())/g' src/state/util/traceback.rs
 
 # Now build
 LIBCLANG_PATH=/usr/lib/aarch64-linux-gnu/ cargo build --release --target="$RUST_TARGET"
 cp -f "target/$RUST_TARGET/release/libdreamluau.so" "$1/libdreamluau.so"
 cd ..
 
-# 4. Compile TGUI
+# 3. Compile TGUI
 echo "Compiling tgui..."
 cd "$1"
 env TG_BOOTSTRAP_CACHE="$original_dir" CBT_BUILD_MODE="TGS" tools/bootstrap/javascript.sh tools/build/build.ts
