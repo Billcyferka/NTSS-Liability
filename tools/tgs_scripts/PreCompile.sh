@@ -2,6 +2,10 @@
 # Hardcoded for 32-bit ARM to match the Box86/BYOND architecture
 export RUST_TARGET="arm-unknown-linux-gnueabihf"
 export PKG_CONFIG_ALLOW_CROSS=1
+
+# Define the C and C++ cross-compilers
+export CC_arm_unknown_linux_gnueabihf=arm-linux-gnueabihf-gcc
+export CXX_arm_unknown_linux_gnueabihf=arm-linux-gnueabihf-g++
 export CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc
 
 if [ -f "./InstallDeps.sh" ]; then
