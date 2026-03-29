@@ -35,7 +35,7 @@ cargo build --release --target="$RUST_TARGET" --features allow_non_32bit
 cp -f "target/$RUST_TARGET/release/librust_g.so" "$1/librust_g.so"
 cd ..
 
-# 3. Build dreamluau with ARM64 Type Patches
+# 3. Build dreamluau with 64-bit surgery
 if [ ! -d "dreamluau" ]; then
     git clone https://github.com/tgstation/dreamluau
 fi
@@ -44,22 +44,27 @@ git fetch
 rustup target add "$RUST_TARGET"
 git checkout "$DREAMLUAU_VERSION"
 
-# --- THE SURGERY: Patching the meowtonin dependency for 64-bit ARM ---
 echo "Patching meowtonin for ARM64..."
 cargo fetch --target="$RUST_TARGET"
 
-# Fix 1: version.rs (The one we fixed last time)
-find ~/.cargo/git/checkouts/meowtonin-*/ -name "version.rs" -exec sed -i 's/(version, build)/(version.try_into().unwrap(), build.try_into().unwrap())/g' {} +
+# Use a loop to find the directory and apply fixes inside it
+MEOW_DIR=$(find ~/.cargo/git/checkouts/meowtonin-384090e48d1c1aa5/ -type d -name "sys" | head -n 1 | sed 's/\/crates\/sys//')
 
-# Fix 2: reference.rs (The ref_id error)
-find ~/.cargo/git/checkouts/meowtonin-*/ -name "reference.rs" -exec sed -i 's/ref_id)/ref_id.into())/g' {} +
+if [ -d "$MEOW_DIR" ]; then
+    echo "Found Meowtonin at $MEOW_DIR. Applying patches..."
+    # Fix version.rs
+    sed -i 's/(version, build)/(version.try_into().unwrap(), build.try_into().unwrap())/g' "$MEOW_DIR/crates/sys/src/version.rs"
+    # Fix reference.rs - ByondValue_SetRef
+    sed -i 's/ref_id)/ref_id.into())/g' "$MEOW_DIR/crates/core/src/value/reference.rs"
+    # Fix reference.rs - Some(result)
+    sed -i 's/Some(result)/Some(result.try_into().unwrap())/g' "$MEOW_DIR/crates/core/src/value/reference.rs"
+else
+    echo "Could not find Meowtonin source directory to patch!"
+    exit 1
+fi
 
-# Fix 3: reference.rs (The result u64->u32 error)
-find ~/.cargo/git/checkouts/meowtonin-*/ -name "reference.rs" -exec sed -i 's/Some(result)/Some(result.try_into().unwrap())/g' {} +
-
-# Now build with Clang path
+# Re-run build
 LIBCLANG_PATH=/usr/lib/aarch64-linux-gnu/ cargo build --release --target="$RUST_TARGET"
-
 cp -f "target/$RUST_TARGET/release/libdreamluau.so" "$1/libdreamluau.so"
 cd ..
 
