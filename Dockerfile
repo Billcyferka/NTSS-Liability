@@ -1,8 +1,7 @@
 # base = ubuntu + full apt update
 FROM ubuntu:22.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
-RUN dpkg --add-architecture i386 \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
         # We need these for the Box86 repo setup later

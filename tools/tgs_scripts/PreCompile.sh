@@ -55,7 +55,7 @@ fi
 /home/ubuntu/.cargo/bin/rustup target add "$RUST_TARGET"
 git checkout "$DREAMLUAU_VERSION"
 /home/ubuntu/.cargo/bin/cargo build --ignore-rust-version --release --target="$RUST_TARGET" --features allow_non_32bit
-cp -f "target/$RU	T_TARGET/release/libdreamluau.so" "$1/libdreamluau.so"
+cp -f "target/$RUST_TARGET/release/libdreamluau.so" "$1/libdreamluau.so"
 cd ..
 
 # 4. Compile TGUI (Standard JS build)
