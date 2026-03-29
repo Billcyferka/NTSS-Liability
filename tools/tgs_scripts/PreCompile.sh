@@ -38,7 +38,7 @@ fi
 /home/ubuntu/.cargo/bin/rustup target add "$RUST_TARGET"
 git checkout "$RUST_G_VERSION"
 # Removed PKG_CONFIG_ALLOW_CROSS because we are building NATIVELY
-/home/ubuntu/.cargo/bin/cargo build --ignore-rust-version --release --target="$RUST_TARGET"
+/home/ubuntu/.cargo/bin/cargo build --ignore-rust-version --release --target="$RUST_TARGET" --features allow_non_32bit
 cp -f "target/$RUST_TARGET/release/librust_g.so" "$1/librust_g.so"
 cd ..
 
@@ -54,7 +54,7 @@ fi
 
 /home/ubuntu/.cargo/bin/rustup target add "$RUST_TARGET"
 git checkout "$DREAMLUAU_VERSION"
-/home/ubuntu/.cargo/bin/cargo build --ignore-rust-version --release --target="$RUST_TARGET"
+/home/ubuntu/.cargo/bin/cargo build --ignore-rust-version --release --target="$RUST_TARGET" --features allow_non_32bit
 cp -f "target/$RUST_TARGET/release/libdreamluau.so" "$1/libdreamluau.so"
 cd ..
 
