@@ -38,11 +38,11 @@ if ! [ -x "$has_cargo" ]; then
     . "$HOME/.cargo/env"
 fi
 
-# 4. Handle yt-dlp (Removed --break-system-packages for older pip versions)
+# Handle yt-dlp - try standard way, fallback to flag only if needed
 if ! [ -x "$has_ytdlp" ]; then
-    echo "Installing yt-dlp with pip3..."
+    echo "Installing yt-dlp..."
     pip3 install yt-dlp || pip3 install yt-dlp --break-system-packages
 else
-    echo "Ensuring yt-dlp is up-to-date..."
+    echo "Updating yt-dlp..."
     pip3 install yt-dlp -U || pip3 install yt-dlp -U --break-system-packages
 fi

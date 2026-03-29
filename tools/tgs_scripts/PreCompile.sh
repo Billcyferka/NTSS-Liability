@@ -1,4 +1,7 @@
 #!/bin/bash
+export LIBCLANG_PATH=/usr/lib/aarch64-linux-gnu/
+export BINDGEN_EXTRA_CLANG_ARGS="-I/usr/lib/aarch64-linux-gnu/ -I/usr/include"
+export PATH="$HOME/.cargo/bin:$PATH"
 
 ./InstallDeps.sh
 
