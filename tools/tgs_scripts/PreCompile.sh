@@ -35,7 +35,7 @@ cargo build --release --target="$RUST_TARGET" --features allow_non_32bit
 cp -f "target/$RUST_TARGET/release/librust_g.so" "$1/librust_g.so"
 cd ..
 
-# 3. Build dreamluau with 64-bit Patch
+# 3. Build dreamluau with ARM64 Type Patches
 if [ ! -d "dreamluau" ]; then
     git clone https://github.com/tgstation/dreamluau
 fi
@@ -44,15 +44,22 @@ git fetch
 rustup target add "$RUST_TARGET"
 git checkout "$DREAMLUAU_VERSION"
 
-# --- THE FIX: This force-patches the type mismatch in the byondapi dependency ---
-# We run a dummy fetch to download the dependencies first
+# --- THE SURGERY: Patching the meowtonin dependency for 64-bit ARM ---
+echo "Patching meowtonin for ARM64..."
 cargo fetch --target="$RUST_TARGET"
 
-# Use find to locate the broken file in the cargo registry and patch it
+# Fix 1: version.rs (The one we fixed last time)
 find ~/.cargo/git/checkouts/meowtonin-*/ -name "version.rs" -exec sed -i 's/(version, build)/(version.try_into().unwrap(), build.try_into().unwrap())/g' {} +
 
-# Now build
+# Fix 2: reference.rs (The ref_id error)
+find ~/.cargo/git/checkouts/meowtonin-*/ -name "reference.rs" -exec sed -i 's/ref_id)/ref_id.into())/g' {} +
+
+# Fix 3: reference.rs (The result u64->u32 error)
+find ~/.cargo/git/checkouts/meowtonin-*/ -name "reference.rs" -exec sed -i 's/Some(result)/Some(result.try_into().unwrap())/g' {} +
+
+# Now build with Clang path
 LIBCLANG_PATH=/usr/lib/aarch64-linux-gnu/ cargo build --release --target="$RUST_TARGET"
+
 cp -f "target/$RUST_TARGET/release/libdreamluau.so" "$1/libdreamluau.so"
 cd ..
 
