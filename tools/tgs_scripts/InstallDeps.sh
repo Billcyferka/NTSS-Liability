@@ -16,10 +16,8 @@ set -e
 set -x
 
 # 2. Native ARM dependencies
-# We check for libssl.so in the AARCH64 folder
 if ! ( [ -x "$has_git" ] && [ -x "$has_curl" ] && [ -x "$has_pip3" ] && [ -x "$has_unzip" ] && [ -f "/usr/lib/aarch64-linux-gnu/libssl.so" ] ); then
     echo "Installing Native ARM Dependencies..."
-
     ARM_PACKAGES="git pkg-config libssl-dev zlib1g-dev curl libclang-dev g++ python3 python3-pip unzip"
 
     if [ -x "$has_sudo" ]; then
@@ -35,14 +33,11 @@ fi
 if ! [ -x "$has_cargo" ]; then
     echo "Installing rust..."
     curl https://sh.rustup.rs -sSf | sh -s -- -y
-    . "$HOME/.cargo/env"
+    source "$HOME/.cargo/env"
 fi
 
-# Handle yt-dlp - try standard way, fallback to flag only if needed
-if ! [ -x "$has_ytdlp" ]; then
-    echo "Installing yt-dlp..."
-    pip3 install yt-dlp || pip3 install yt-dlp --break-system-packages
-else
-    echo "Updating yt-dlp..."
-    pip3 install yt-dlp -U || pip3 install yt-dlp -U --break-system-packages
+# 4. Handle yt-dlp (Fixed: logic to avoid 'no such option' crash)
+echo "Ensuring yt-dlp..."
+if ! pip3 install yt-dlp 2>/dev/null; then
+    pip3 install yt-dlp --break-system-packages
 fi
