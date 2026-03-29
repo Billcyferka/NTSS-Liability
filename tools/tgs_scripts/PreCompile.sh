@@ -35,7 +35,7 @@ cargo build --release --target="$RUST_TARGET" --features allow_non_32bit
 cp -f "target/$RUST_TARGET/release/librust_g.so" "$1/librust_g.so"
 cd ..
 
-# 3. Build dreamluau with 64-bit surgery
+# 3. Build dreamluau with ARM64 Source Patches
 if [ ! -d "dreamluau" ]; then
     git clone https://github.com/tgstation/dreamluau
 fi
@@ -44,26 +44,24 @@ git fetch
 rustup target add "$RUST_TARGET"
 git checkout "$DREAMLUAU_VERSION"
 
-echo "Patching meowtonin for ARM64..."
+echo "Patching meowtonin dependency..."
 cargo fetch --target="$RUST_TARGET"
-
-# Use a loop to find the directory and apply fixes inside it
 MEOW_DIR=$(find ~/.cargo/git/checkouts/meowtonin-384090e48d1c1aa5/ -type d -name "sys" | head -n 1 | sed 's/\/crates\/sys//')
-
 if [ -d "$MEOW_DIR" ]; then
-    echo "Found Meowtonin at $MEOW_DIR. Applying patches..."
-    # Fix version.rs
     sed -i 's/(version, build)/(version.try_into().unwrap(), build.try_into().unwrap())/g' "$MEOW_DIR/crates/sys/src/version.rs"
-    # Fix reference.rs - ByondValue_SetRef
     sed -i 's/ref_id)/ref_id.into())/g' "$MEOW_DIR/crates/core/src/value/reference.rs"
-    # Fix reference.rs - Some(result)
     sed -i 's/Some(result)/Some(result.try_into().unwrap())/g' "$MEOW_DIR/crates/core/src/value/reference.rs"
-else
-    echo "Could not find Meowtonin source directory to patch!"
-    exit 1
 fi
 
-# Re-run build
+echo "Patching DreamLuau source for ARM64 signed/unsigned char fix..."
+# Fix the "expected *const u8, found *const i8" errors
+sed -i 's/as \*const i8/as \*const u8/g' src/state/util/entrypoint.rs
+sed -i 's/as \*const i8/as \*const u8/g' src/state/util/traceback.rs
+
+# Fix the "expected u8, found i8" errors in traceback.rs
+sed -i "s/as i8)/as u8)/g" src/state/util/traceback.rs
+
+# Now build
 LIBCLANG_PATH=/usr/lib/aarch64-linux-gnu/ cargo build --release --target="$RUST_TARGET"
 cp -f "target/$RUST_TARGET/release/libdreamluau.so" "$1/libdreamluau.so"
 cd ..
