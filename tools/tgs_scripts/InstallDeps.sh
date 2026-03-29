@@ -33,11 +33,9 @@ fi
 if ! [ -x "$has_cargo" ]; then
     echo "Installing rust..."
     curl https://sh.rustup.rs -sSf | sh -s -- -y
-    source "$HOME/.cargo/env"
+    . "$HOME/.cargo/env"
 fi
 
-# 4. Handle yt-dlp (Fixed: logic to avoid 'no such option' crash)
+# 4. Handle yt-dlp (Smart fallback for pip versions)
 echo "Ensuring yt-dlp..."
-if ! pip3 install yt-dlp 2>/dev/null; then
-    pip3 install yt-dlp --break-system-packages
-fi
+pip3 install yt-dlp || pip3 install yt-dlp --break-system-packages
