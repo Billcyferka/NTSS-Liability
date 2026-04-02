@@ -38,7 +38,7 @@
 	///Reference to our internal cell
 	var/obj/item/stock_parts/power_store/cell
 	///Initial cell charge %
-	var/start_charge = 90
+	var/start_charge = 0
 	///Type of cell we start with
 	var/cell_type = /obj/item/stock_parts/power_store/battery/upgraded //Base cell has 2500 capacity. Enter the path of a different cell you want to use. cell determines charge rates, max capacity, ect. These can also be changed with other APC vars, but isn't recommended to minimize the risk of accidental usage of dirty editted APCs
 	///State of the cover (closed, opened, removed)
